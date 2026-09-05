@@ -10,7 +10,8 @@ from utils.documents import detect_weak_bullets
 from utils.k2_client import K2APIError, K2Client
 from utils.parsers import ParseError, as_dict_list, as_str_list, extract_json_object
 from utils.personas import Persona
-from utils.prompts import SYSTEM_REWRITER, rewrite_prompt
+from utils.prompts import JSON_ONLY_NUDGE, SYSTEM_REWRITER, rewrite_prompt
+from utils.security import clip_text
 
 STRONG_VERBS = (
     "Automated",
@@ -58,13 +59,22 @@ def rewrite_bullets(
 
     try:
         client = K2Client(settings)
-        raw = client.chat(
+        raw = client.chat_json(
             [
                 {"role": "system", "content": SYSTEM_REWRITER},
-                {"role": "user", "content": rewrite_prompt(cleaned, cv_text, jd_text, persona)},
+                {
+                    "role": "user",
+                    "content": rewrite_prompt(
+                        cleaned[:6],
+                        clip_text(cv_text, 2500),
+                        clip_text(jd_text, 1500),
+                        persona,
+                    ),
+                },
             ],
-            temperature=0.45,
-            max_tokens=4096,
+            temperature=0.35,
+            max_tokens=8192,
+            nudge=JSON_ONLY_NUDGE,
         )
         payload = extract_json_object(raw)
         items = _from_payload(payload, cleaned)

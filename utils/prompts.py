@@ -7,7 +7,9 @@ from utils.personas import Persona
 SYSTEM_ANALYST = (
     "You are Building THE IT GUY Career Engine, a precise ATS and hiring-manager analyst. "
     "You evaluate CVs against job descriptions for a selected persona. "
-    "Return ONLY valid JSON. No markdown, no preamble, no chain-of-thought."
+    "Do not emit <think>, <reasoning>, or any chain-of-thought. "
+    "Your entire reply must be one JSON object. First character { last character }. "
+    "No markdown fences, no preamble."
 )
 
 SYSTEM_REWRITER = (
@@ -15,7 +17,13 @@ SYSTEM_REWRITER = (
     "You turn weak CV bullets into quantified, achievement-oriented bullets that survive ATS parsers. "
     "Never invent employers, titles, tools, or metrics the CV does not support. "
     "If a number is missing, use a conservative placeholder in [brackets] the candidate can fill. "
-    "Return ONLY valid JSON. No markdown, no preamble."
+    "Do not emit <think> or chain-of-thought. Reply with one JSON object only. "
+    "First character { last character }."
+)
+
+JSON_ONLY_NUDGE = (
+    "Stop reasoning now. Output the JSON object only. "
+    "Start with { and end with }. No tags, no markdown, no prose."
 )
 
 

@@ -127,13 +127,40 @@ class K2Client:
         finish = str(choice.get("finish_reason") or "")
         if finish == "length":
             raise K2APIError(
-                "K2 Think used its output budget on internal reasoning before the final JSON. "
-                "The engine now clips long CVs; run analysis again."
+                "K2 Think used its output budget on internal reasoning before the final JSON.",
+                retryable=True,
             )
         raise K2APIError(
-            "K2 Think returned reasoning with no final answer. Run analysis again — "
-            "long CVs are clipped automatically."
+            "K2 Think returned reasoning with no final answer.",
+            retryable=True,
         )
+
+    def chat_json(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        temperature: float = 0.15,
+        max_tokens: int = 16384,
+        nudge: str = "",
+    ) -> str:
+        """Ask for JSON; if reasoning eats the budget, retry once with a hard JSON-only nudge."""
+        try:
+            return self.chat(messages, temperature=temperature, max_tokens=max_tokens)
+        except K2APIError as exc:
+            if not exc.retryable:
+                raise
+            follow_up = list(messages)
+            follow_up.append(
+                {
+                    "role": "user",
+                    "content": nudge
+                    or (
+                        "Stop reasoning now. Output the JSON object only. "
+                        "Start with { and end with }. No tags, no markdown, no prose."
+                    ),
+                }
+            )
+            return self.chat(follow_up, temperature=0.0, max_tokens=max_tokens)
 
     def _format_http_error(self, response: requests.Response) -> str:
         body = redact((response.text or "").strip(), self.settings.api_key)
