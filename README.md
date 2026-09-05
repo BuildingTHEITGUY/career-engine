@@ -41,7 +41,7 @@ No login. No upload to our database. One job. One CV. One decision: apply or fix
 ## Use it in 60 seconds
 
 1. Open **[cv.buildingtheitguy.com](https://cv.buildingtheitguy.com)**.
-2. Toggle **Student Track** or **Professional Track**.
+2. Toggle **I am a student** or **I am a Professional**.
 3. Paste your CV (or drop a PDF) and the target job description.
 4. Run **Gap analysis**, then **Rewrite weak bullets**.
 5. Export the markdown report and paste the after-lines into your CV.

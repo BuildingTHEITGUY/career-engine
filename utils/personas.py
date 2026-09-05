@@ -18,14 +18,14 @@ class Persona:
 
 STUDENT = Persona(
     key="student",
-    label="Student Track",
-    audience="early-career candidates, bootcamp grads, and career switchers",
+    label="I am a student",
+    audience="Early-career candidates, bootcamp grads, and career switchers",
     evaluates=(
-        "cloud basics (AWS / Azure / GCP fundamentals)",
-        "hands-on labs, homelabs, and portfolio evidence",
-        "security fundamentals and least-privilege thinking",
+        "Entry certifications and learning velocity",
+        "Cloud basics (AWS / Azure / GCP fundamentals)",
+        "Hands-on labs, homelabs, and portfolio evidence",
+        "Security fundamentals and least-privilege thinking",
         "Linux, networking, Git, and scripting literacy",
-        "entry certifications and learning velocity",
     ),
     lenses=(
         "Prefer demonstrated labs over buzzwords.",
@@ -79,14 +79,14 @@ STUDENT = Persona(
 
 PROFESSIONAL = Persona(
     key="professional",
-    label="Professional Track",
-    audience="mid-to-senior IT, GRC, service management, and delivery roles",
+    label="I am a Professional",
+    audience="Mid-to-senior IT, GRC, service management, and delivery roles",
     evaluates=(
         "ITIL / ITSM practices and service outcomes",
-        "governance frameworks (COBIT, ISO 27001, NIST CSF, ISO 20000)",
-        "risk metrics, KRIs, residual vs inherent risk, and audit readiness",
+        "Governance frameworks (COBIT, ISO 27001, NIST CSF, ISO 20000)",
+        "Risk metrics, KRIs, residual vs inherent risk, and audit readiness",
         "IT project delivery, stakeholders, budget, and change control",
-        "vendor, SLA/OLA, and operating-model language",
+        "Vendor, SLA/OLA, and operating-model language",
     ),
     lenses=(
         "Score enterprise terminology as heavily as raw tools.",

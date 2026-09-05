@@ -240,7 +240,7 @@ def main() -> None:
             options=list(PERSONAS.keys()),
             format_func=lambda key: PERSONAS[key].label,
             key="persona_key",
-            help="Student Track scores labs and fundamentals. Professional Track scores ITIL, governance, and risk.",
+            help="Student scoring focuses on labs and fundamentals. Professional scoring focuses on ITIL, governance, and risk.",
         )
         persona = get_persona(persona_key)
         st.caption(persona.audience)
