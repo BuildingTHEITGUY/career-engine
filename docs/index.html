@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Building THE IT GUY — Career Engine</title>
+  <meta name="description" content="ATS optimizer and job-fit comparator for students and IT professionals.">
+  <style>
+    :root {
+      --navy: #0b1220;
+      --gold: #d4a017;
+      --text: #e8edf5;
+      --muted: #9aa8bd;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--navy);
+      color: var(--text);
+      font-family: "Segoe UI", "IBM Plex Sans", sans-serif;
+    }
+    .bar {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1rem;
+      border-bottom: 1px solid #243049;
+      background: #0a101b;
+    }
+    .brand {
+      letter-spacing: 0.12em;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    .open {
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-decoration: none;
+    }
+    .open:hover { color: var(--gold); }
+    iframe {
+      width: 100%;
+      height: calc(100vh - 48px);
+      border: 0;
+      display: block;
+      background: var(--navy);
+    }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <div class="brand">Building THE IT GUY · Career Engine</div>
+    <a class="open" href="https://buildingtheitguy.streamlit.app/" target="_blank" rel="noopener">Open full app</a>
+  </header>
+  <iframe
+    title="Building THE IT GUY Career Engine"
+    src="https://buildingtheitguy.streamlit.app/?embed=true"
+    allow="clipboard-write"
+  ></iframe>
+</body>
+</html>

@@ -102,6 +102,10 @@ What stays secure by design:
 - Per-session and hourly caps so visitors cannot drain your quota
 - Input size cap before the model is called
 
+**Public URLs**
+- Engine: `https://buildingtheitguy.streamlit.app` (set this in Streamlit Cloud → Settings → General)
+- Brand front door: `https://cv.buildingtheitguy.com` (GitHub Pages in `/docs` embeds the engine; the K2 key stays in Streamlit Secrets)
+
 The public site still spends *your* K2 credits. Watch usage. If you need zero shared spend, host in demo mode and omit the secret.
 
 Do not commit real CVs. Text is sent to K2 Think only when someone clicks analyze or rewrite.
