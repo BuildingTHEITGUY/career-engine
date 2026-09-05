@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from functools import lru_cache
 
 from dotenv import load_dotenv
 
@@ -57,26 +56,29 @@ class Settings:
 
 
 def _secret(name: str) -> str:
+    """Read a Streamlit Cloud / local secrets value without leaking errors to the UI."""
     try:
         import streamlit as st
-
-        if hasattr(st, "secrets") and name in st.secrets:
-            return str(st.secrets[name]).strip()
     except Exception:
         return ""
+    try:
+        value = st.secrets[name]
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    except Exception:
+        pass
     return ""
 
 
-@lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    effort = _first(os.getenv("K2_REASONING_EFFORT"), DEFAULT_REASONING_EFFORT).lower()
+    effort = _first(os.getenv("K2_REASONING_EFFORT"), _secret("K2_REASONING_EFFORT"), DEFAULT_REASONING_EFFORT).lower()
     if effort not in VALID_REASONING_EFFORTS:
         effort = DEFAULT_REASONING_EFFORT
 
     return Settings(
-        api_key=_first(os.getenv("K2_API_KEY"), os.getenv("K2THINK_API_KEY"), _secret("K2_API_KEY")),
-        api_base=_first(os.getenv("K2_API_BASE"), _secret("K2_API_BASE"), DEFAULT_API_BASE),
-        model=_first(os.getenv("K2_MODEL"), _secret("K2_MODEL"), DEFAULT_MODEL),
+        api_key=_first(_secret("K2_API_KEY"), os.getenv("K2_API_KEY"), os.getenv("K2THINK_API_KEY")),
+        api_base=_first(_secret("K2_API_BASE"), os.getenv("K2_API_BASE"), DEFAULT_API_BASE),
+        model=_first(_secret("K2_MODEL"), os.getenv("K2_MODEL"), DEFAULT_MODEL),
         reasoning_effort=effort,
         timeout=_int_env("K2_TIMEOUT", 120),
         max_retries=_int_env("K2_MAX_RETRIES", 3),
