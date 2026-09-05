@@ -1,14 +1,3 @@
----
-title: Building THE IT GUY Career Engine
-emoji: ▣
-colorFrom: yellow
-colorTo: indigo
-sdk: docker
-app_port: 8501
-pinned: false
-license: mit
----
-
 <p align="center">
   <img src="https://img.shields.io/badge/LIVE-cv.buildingtheitguy.com-D4A017?style=for-the-badge" alt="Live app">
   <img src="https://img.shields.io/badge/Track-Student%20%7C%20Professional-0B1220?style=for-the-badge" alt="Dual persona">
