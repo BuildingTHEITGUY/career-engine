@@ -10,7 +10,7 @@ from utils.k2_client import K2APIError, K2Client
 from utils.local_ats import LocalATSResult, score_local_ats
 from utils.parsers import ParseError, as_dict_list, as_str_list, clamp_score, extract_json_object
 from utils.personas import Persona
-from utils.prompts import JSON_ONLY_NUDGE, SYSTEM_ANALYST, gap_analysis_prompt
+from utils.prompts import JSON_ONLY_NUDGE, SYSTEM_ANALYST, compact_gap_prompt, micro_gap_prompt
 from utils.security import clip_text
 
 
@@ -51,27 +51,46 @@ def run_gap_analysis(
             warning="No K2 API key configured. Showing deterministic ATS overlap only.",
         )
 
-    try:
-        client = K2Client(settings)
-        compact_cv = clip_text(cv_text, min(settings.max_input_chars, 4000))
-        compact_jd = clip_text(jd_text, min(settings.max_input_chars, 3000))
-        raw = client.chat_json(
-            [
-                {"role": "system", "content": SYSTEM_ANALYST},
-                {"role": "user", "content": gap_analysis_prompt(compact_cv, compact_jd, persona, local.score)},
-            ],
-            temperature=0.15,
-            max_tokens=16384,
-            nudge=JSON_ONLY_NUDGE,
-        )
-        payload = extract_json_object(raw)
-        analysis = _from_payload(payload, local)
-        analysis.local = local
-        return analysis
-    except (K2APIError, ParseError) as exc:
-        fallback = _from_local(local, warning=str(exc))
-        fallback.source = "local-fallback"
-        return fallback
+    client = K2Client(settings)
+    attempts = (
+        (compact_gap_prompt, 2200, 1600, 8192, "k2"),
+        (micro_gap_prompt, 1400, 1000, 4096, "k2-compact"),
+    )
+    last_error = "K2 Think did not finish a JSON report."
+    for builder, cv_limit, jd_limit, tokens, source in attempts:
+        try:
+            raw = client.chat_json(
+                [
+                    {"role": "system", "content": SYSTEM_ANALYST},
+                    {
+                        "role": "user",
+                        "content": builder(
+                            clip_text(cv_text, cv_limit),
+                            clip_text(jd_text, jd_limit),
+                            persona,
+                            local.score,
+                        ),
+                    },
+                ],
+                temperature=0.1,
+                max_tokens=tokens,
+                nudge=JSON_ONLY_NUDGE,
+            )
+            payload = extract_json_object(raw)
+            analysis = _from_payload(payload, local)
+            analysis.local = local
+            analysis.source = source
+            return analysis
+        except (K2APIError, ParseError) as exc:
+            last_error = str(exc)
+            continue
+
+    fallback = _from_local(
+        local,
+        warning=f"K2 is connected but did not finish the narrative. {last_error}",
+    )
+    fallback.source = "local-fallback"
+    return fallback
 
 
 def _from_payload(payload: dict[str, Any], local: LocalATSResult) -> GapAnalysis:
@@ -110,17 +129,23 @@ def _from_payload(payload: dict[str, Any], local: LocalATSResult) -> GapAnalysis
 
 def _items(value: Any, name_key: str, why_key: str, next_key: str) -> list[GapItem]:
     items: list[GapItem] = []
-    for row in as_dict_list(value):
-        name = str(row.get(name_key) or "").strip()
-        if not name:
-            continue
-        items.append(
-            GapItem(
-                name=name,
-                why=str(row.get(why_key) or "").strip(),
-                next_step=str(row.get(next_key) or "").strip(),
+    if isinstance(value, list):
+        for row in value:
+            if isinstance(row, str) and row.strip():
+                items.append(GapItem(name=row.strip(), why="", next_step=""))
+                continue
+            if not isinstance(row, dict):
+                continue
+            name = str(row.get(name_key) or "").strip()
+            if not name:
+                continue
+            items.append(
+                GapItem(
+                    name=name,
+                    why=str(row.get(why_key) or "").strip(),
+                    next_step=str(row.get(next_key) or "").strip(),
+                )
             )
-        )
     return items
 
 
@@ -142,8 +167,8 @@ def _from_local(local: LocalATSResult, warning: str) -> GapAnalysis:
             "ats_keywords": local.score,
         },
         summary=(
-            "Local ATS overlap only. Connect K2 Think v2 for a hiring-manager narrative, "
-            "enterprise-term extraction, and a 30/60/90 close-the-gap plan."
+            "Local ATS keyword overlap only. The hiring-manager narrative from K2 Think "
+            "did not finish this run, so this score is a deterministic prior — not the full engine."
         ),
         matched_skills=local.overlap,
         missing_hard_skills=missing_skills,

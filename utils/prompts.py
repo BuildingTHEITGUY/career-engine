@@ -27,6 +27,42 @@ JSON_ONLY_NUDGE = (
 )
 
 
+def compact_gap_prompt(cv_text: str, jd_text: str, persona: Persona, local_score: int) -> str:
+    pillars = "; ".join(persona.evaluates)
+    return f"""Score this {persona.label} candidate. Local ATS prior: {local_score}%.
+Pillars: {pillars}
+Reply with JSON only. Max 6 items per list.
+
+{{
+  "match_score": 0,
+  "score_breakdown": {{"hard_skills": 0, "enterprise_terminology": 0, "persona_fit": 0, "ats_keywords": 0}},
+  "summary": "2 sentences",
+  "matched_skills": ["string"],
+  "missing_hard_skills": [{{"skill": "string", "why_it_matters": "string", "how_to_close": "string"}}],
+  "missing_enterprise_terms": [{{"term": "string", "context": "string", "suggested_cv_phrase": "string"}}],
+  "quick_wins": ["string"]
+}}
+
+CV:
+{cv_text.strip()}
+
+JD:
+{jd_text.strip()}
+"""
+
+
+def micro_gap_prompt(cv_text: str, jd_text: str, persona: Persona, local_score: int) -> str:
+    return f"""{persona.label}. Local prior {local_score}%. JSON only:
+{{"match_score": 0, "summary": "two sentences", "missing_hard_skills": ["skill"], "quick_wins": ["win"]}}
+
+CV:
+{cv_text.strip()}
+
+JD:
+{jd_text.strip()}
+"""
+
+
 def gap_analysis_prompt(cv_text: str, jd_text: str, persona: Persona, local_score: int) -> str:
     lenses = "\n".join(f"- {item}" for item in persona.lenses)
     evaluates = "\n".join(f"- {item}" for item in persona.evaluates)
