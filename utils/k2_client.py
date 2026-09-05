@@ -61,7 +61,6 @@ class K2Client:
             "temperature": temperature,
             "max_tokens": max_tokens,
             "stream": False,
-            "chat_template_kwargs": {"reasoning_effort": self.settings.reasoning_effort},
         }
 
         last_error = "Unknown K2 API error"
@@ -128,6 +127,8 @@ class K2Client:
             return "K2 Think endpoint not found. The host should check K2_API_BASE and K2_MODEL in secrets."
         if response.status_code == 429:
             return "K2 Think rate-limited the request. Wait a moment and retry."
+        if response.status_code == 400:
+            return "K2 Think rejected the request format. Try a shorter CV or JD, then run again."
         return f"K2 Think HTTP {response.status_code}: {snippet}"
 
     @staticmethod
