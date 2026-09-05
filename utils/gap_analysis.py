@@ -58,7 +58,7 @@ def run_gap_analysis(
                 {"role": "user", "content": gap_analysis_prompt(cv_text, jd_text, persona, local.score)},
             ],
             temperature=0.15,
-            max_tokens=4096,
+            max_tokens=8192,
         )
         payload = extract_json_object(raw)
         analysis = _from_payload(payload, local)

@@ -305,8 +305,15 @@ def main() -> None:
         st.session_state.last_error = ""
         st.rerun()
 
+    cv_len = len(st.session_state.cv_text)
+    jd_len = len(st.session_state.jd_text)
     if not st.session_state.cv_text.strip() or not st.session_state.jd_text.strip():
         st.caption("Paste both a CV and a JD, or load a sample from the sidebar.")
+    elif cv_len > settings.max_input_chars or jd_len > settings.max_input_chars:
+        st.caption(
+            f"K2 receives up to {settings.max_input_chars:,} characters per field. "
+            f"Your CV is {cv_len:,} and the JD is {jd_len:,}. Extra text is clipped."
+        )
 
     if run_clicked:
         if len(st.session_state.cv_text.strip()) < 80 or len(st.session_state.jd_text.strip()) < 40:

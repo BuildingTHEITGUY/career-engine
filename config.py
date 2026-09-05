@@ -44,7 +44,7 @@ class Settings:
     max_retries: int
     max_calls_per_session: int = 8
     max_calls_per_hour: int = 20
-    max_input_chars: int = 20000
+    max_input_chars: int = 8000
 
     @property
     def is_configured(self) -> bool:
@@ -84,7 +84,7 @@ def get_settings() -> Settings:
         max_retries=_int_env("K2_MAX_RETRIES", 3),
         max_calls_per_session=_int_env("K2_MAX_CALLS_PER_SESSION", 8),
         max_calls_per_hour=_int_env("K2_MAX_CALLS_PER_HOUR", 20),
-        max_input_chars=_int_env("K2_MAX_INPUT_CHARS", 20000),
+        max_input_chars=_int_env("K2_MAX_INPUT_CHARS", 8000),
     )
 
 

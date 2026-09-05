@@ -16,17 +16,20 @@ class ParseError(ValueError):
 
 
 def extract_json_object(raw: str) -> dict[str, Any]:
-    text = strip_reasoning(raw).strip()
-    if not text:
+    raw = raw or ""
+    stripped = strip_reasoning(raw).strip()
+    sources = [item for item in (stripped, raw) if item.strip()]
+    if not sources:
         raise ParseError("Empty model output.")
 
-    candidates = [text]
-    candidates.extend(match.group(1).strip() for match in FENCE.finditer(text))
-
-    start = text.find("{")
-    end = text.rfind("}")
-    if start != -1 and end > start:
-        candidates.append(text[start : end + 1])
+    candidates: list[str] = []
+    for text in sources:
+        candidates.append(text)
+        candidates.extend(match.group(1).strip() for match in FENCE.finditer(text))
+        start = text.find("{")
+        end = text.rfind("}")
+        if start != -1 and end > start:
+            candidates.append(text[start : end + 1])
 
     seen: set[str] = set()
     last_error = "No JSON object found."

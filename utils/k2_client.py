@@ -53,7 +53,7 @@ class K2Client:
         messages: list[dict[str, str]],
         *,
         temperature: float = 0.2,
-        max_tokens: int = 4096,
+        max_tokens: int = 8192,
     ) -> str:
         payload: dict[str, Any] = {
             "model": self.settings.model,
@@ -104,19 +104,36 @@ class K2Client:
 
     def _extract_content(self, data: Any) -> str:
         try:
-            message = data["choices"][0]["message"]
+            choice = data["choices"][0]
+            message = choice["message"]
         except (KeyError, IndexError, TypeError) as exc:
             raise K2APIError("K2 Think returned an unexpected response shape.") from exc
 
-        content = message.get("content") or message.get("reasoning_content") or ""
-        if isinstance(content, list):
-            content = "".join(
-                part.get("text", "") if isinstance(part, dict) else str(part) for part in content
+        chunks: list[str] = []
+        for key in ("content", "reasoning_content"):
+            part = message.get(key) or ""
+            if isinstance(part, list):
+                part = "".join(
+                    item.get("text", "") if isinstance(item, dict) else str(item) for item in part
+                )
+            if part:
+                chunks.append(str(part))
+        raw = "\n".join(chunks)
+        cleaned = strip_reasoning(raw)
+        if cleaned:
+            return cleaned
+        if "{" in raw and "}" in raw:
+            return raw
+        finish = str(choice.get("finish_reason") or "")
+        if finish == "length":
+            raise K2APIError(
+                "K2 Think used its output budget on internal reasoning before the final JSON. "
+                "The engine now clips long CVs; run analysis again."
             )
-        text = strip_reasoning(str(content))
-        if not text:
-            raise K2APIError("K2 Think returned an empty answer. Try again with a shorter CV or JD.")
-        return text
+        raise K2APIError(
+            "K2 Think returned reasoning with no final answer. Run analysis again — "
+            "long CVs are clipped automatically."
+        )
 
     def _format_http_error(self, response: requests.Response) -> str:
         body = redact((response.text or "").strip(), self.settings.api_key)

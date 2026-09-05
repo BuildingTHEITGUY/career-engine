@@ -64,7 +64,7 @@ def rewrite_bullets(
                 {"role": "user", "content": rewrite_prompt(cleaned, cv_text, jd_text, persona)},
             ],
             temperature=0.45,
-            max_tokens=3072,
+            max_tokens=4096,
         )
         payload = extract_json_object(raw)
         items = _from_payload(payload, cleaned)

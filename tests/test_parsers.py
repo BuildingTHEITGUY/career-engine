@@ -37,3 +37,9 @@ def test_clamp_score() -> None:
 def test_strip_reasoning() -> None:
     text = "<think>secret chain</think>\nFinal answer"
     assert strip_reasoning(text) == "Final answer"
+
+
+def test_extract_json_inside_think_block() -> None:
+    raw = '<think>notes {"match_score": 64, "summary": "Inside think"} more</think>'
+    payload = extract_json_object(raw)
+    assert payload["match_score"] == 64
