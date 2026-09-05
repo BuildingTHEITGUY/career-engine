@@ -43,3 +43,9 @@ def test_extract_json_inside_think_block() -> None:
     raw = '<think>notes {"match_score": 64, "summary": "Inside think"} more</think>'
     payload = extract_json_object(raw)
     assert payload["match_score"] == 64
+
+
+def test_extract_unquoted_keys() -> None:
+    raw = '{ match_score: 50, summary: "Local prior" }'
+    payload = extract_json_object(raw)
+    assert payload["match_score"] == 50

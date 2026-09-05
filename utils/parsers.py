@@ -34,19 +34,31 @@ def extract_json_object(raw: str) -> dict[str, Any]:
     seen: set[str] = set()
     last_error = "No JSON object found."
     for candidate in candidates:
-        if not candidate or candidate in seen:
-            continue
-        seen.add(candidate)
-        try:
-            parsed = json.loads(candidate)
-        except json.JSONDecodeError as exc:
-            last_error = str(exc)
-            continue
-        if isinstance(parsed, dict):
-            return parsed
-        last_error = "JSON was not an object."
+        for variant in (candidate, repair_json(candidate)):
+            if not variant or variant in seen:
+                continue
+            seen.add(variant)
+            try:
+                parsed = json.loads(variant)
+            except json.JSONDecodeError as exc:
+                last_error = str(exc)
+                continue
+            if isinstance(parsed, dict):
+                return parsed
+            last_error = "JSON was not an object."
 
     raise ParseError(f"Could not parse K2 Think JSON: {last_error}")
+
+
+def repair_json(text: str) -> str:
+    """Fix the sloppy objects K2 often emits after a think block."""
+    cleaned = (text or "").strip()
+    cleaned = cleaned.replace("“", '"').replace("”", '"').replace("‘", "'").replace("’", "'")
+    cleaned = re.sub(r",\s*([}\]])", r"\1", cleaned)
+    cleaned = re.sub(r"([{\[,]\s*)'([^']+)'(\s*:)", r'\1"\2"\3', cleaned)
+    cleaned = re.sub(r":\s*'([^']*)'", r': "\1"', cleaned)
+    cleaned = re.sub(r'([{\[,]\s*)([A-Za-z_][A-Za-z0-9_]*)\s*:', r'\1"\2":', cleaned)
+    return cleaned
 
 
 def clamp_score(value: Any, default: int = 0) -> int:
