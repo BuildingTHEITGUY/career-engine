@@ -22,7 +22,8 @@ SYSTEM_REWRITER = (
 )
 
 JSON_ONLY_NUDGE = (
-    "Stop reasoning now. Output the JSON object only. "
+    "Stop reasoning now. Output one valid JSON object only. "
+    'Every key and string in double quotes, like {"match_score": 70, "summary": "text"}. '
     "Start with { and end with }. No tags, no markdown, no prose."
 )
 

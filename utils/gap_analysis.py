@@ -82,7 +82,7 @@ def run_gap_analysis(
             analysis.source = source
             return analysis
         except (K2APIError, ParseError) as exc:
-            last_error = str(exc)
+            last_error = _friendly_k2_error(exc)
             continue
 
     fallback = _from_local(
@@ -91,6 +91,16 @@ def run_gap_analysis(
     )
     fallback.source = "local-fallback"
     return fallback
+
+
+def _friendly_k2_error(exc: Exception) -> str:
+    if isinstance(exc, ParseError) or "Could not parse" in str(exc):
+        return (
+            "K2 Think replied, but the report was not valid JSON "
+            "(it often writes keys without quotes). We retried a shorter prompt, "
+            "then used local ATS overlap so the score stays honest."
+        )
+    return str(exc)
 
 
 def _from_payload(payload: dict[str, Any], local: LocalATSResult) -> GapAnalysis:

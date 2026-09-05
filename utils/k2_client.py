@@ -143,24 +143,29 @@ class K2Client:
         max_tokens: int = 16384,
         nudge: str = "",
     ) -> str:
-        """Ask for JSON; if reasoning eats the budget, retry once with a hard JSON-only nudge."""
+        """Ask for JSON; retry once if reasoning eats the budget or the object is invalid."""
+        from utils.parsers import extract_json_object
+
+        nudge_text = nudge or (
+            "Stop reasoning now. Output one valid JSON object only. "
+            'Every key in double quotes, like {"match_score": 70}. '
+            "Start with { and end with }. No tags, no markdown, no prose."
+        )
         try:
-            return self.chat(messages, temperature=temperature, max_tokens=max_tokens)
+            raw = self.chat(messages, temperature=temperature, max_tokens=max_tokens)
         except K2APIError as exc:
             if not exc.retryable:
                 raise
-            follow_up = list(messages)
-            follow_up.append(
-                {
-                    "role": "user",
-                    "content": nudge
-                    or (
-                        "Stop reasoning now. Output the JSON object only. "
-                        "Start with { and end with }. No tags, no markdown, no prose."
-                    ),
-                }
-            )
-            return self.chat(follow_up, temperature=0.0, max_tokens=max_tokens)
+            raw = None
+        if raw:
+            try:
+                extract_json_object(raw)
+                return raw
+            except Exception:
+                raw = None
+        follow_up = list(messages)
+        follow_up.append({"role": "user", "content": nudge_text})
+        return self.chat(follow_up, temperature=0.0, max_tokens=max_tokens)
 
     def _format_http_error(self, response: requests.Response) -> str:
         body = redact((response.text or "").strip(), self.settings.api_key)

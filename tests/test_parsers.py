@@ -49,3 +49,35 @@ def test_extract_unquoted_keys() -> None:
     raw = '{ match_score: 50, summary: "Local prior" }'
     payload = extract_json_object(raw)
     assert payload["match_score"] == 50
+
+
+def test_extract_equals_and_python_bools() -> None:
+    raw = "{ match_score = 41, ok = True, extra = None }"
+    payload = extract_json_object(raw)
+    assert payload["match_score"] == 41
+
+
+def test_extract_hyphenated_unquoted_key() -> None:
+    raw = '{ match-score: 33, summary: "ok" }'
+    payload = extract_json_object(raw)
+    assert payload["match-score"] == 33
+
+
+def test_extract_unquoted_values_and_trailing_comma() -> None:
+    raw = "{ match_score: 24, summary: Local ATS keyword overlap only, }"
+    payload = extract_json_object(raw)
+    assert payload["match_score"] == 24
+    assert "Local ATS" in payload["summary"]
+
+
+def test_extract_single_quoted_object() -> None:
+    raw = "{ 'match_score': 24, 'summary': 'Student track prior' }"
+    payload = extract_json_object(raw)
+    assert payload["match_score"] == 24
+
+
+def test_salvage_score_from_broken_blob() -> None:
+    raw = "{ I will now score this CV match_score: 58 summary: 'Partial K2 write-up' "
+    payload = extract_json_object(raw)
+    assert payload["match_score"] == 58
+    assert "Partial" in payload["summary"]
